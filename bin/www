@@ -7,6 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('chat:server');
 var http = require('http');
+var redis = require('redis').createClient();
 
 /**
  * Get port from environment and store in Express.
@@ -22,13 +23,23 @@ app.set('port', port);
 var server = http.createServer(app);
 var io = require('socket.io')(server);
 
-io.on('connection', function(client){
-  client.broadcast.emit('join', 'user joined');
+io.sockets.on('connection', function(client){
+  redis.lrange('messages', 0, -1, function(err, msgs){
+    msgs = msgs.reverse();
+    msgs.forEach(function(m) {
+      client.emit('message', m);
+    });
+  });
+  
   console.log('user connected');
 
   client.on('message', function(msg){
+    redis.lpush('messages',msg, function(){
+      redis.ltrim('messages', 0, 3);
+    });
     console.log('user said: ' + msg);
-    io.emit('message', msg);
+    client.broadcast.emit('message', msg);
+    client.emit('message', msg);
   });
 
   client.on('disconnect', function(){
