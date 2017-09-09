@@ -56,12 +56,12 @@
 <body>
   <div id="app">
     <div v-if="!isJoined">
-        <h2>Welcome</h2>
-        <input v-model.trim="room" placeholder="chat room name"></input>
-        <input v-model.trim="nickname" placeholder="your nickname"></input>
-        <div>
-          <button v-on:click="join" v-bind:disabled='blockJoin' >Join</button>
-        </div>
+      <h2>Welcome</h2>
+      <input v-model.trim="room" placeholder="chat room name"></input>
+      <input v-model.trim="nickname" placeholder="your nickname"></input>
+      <div>
+        <button v-on:click="join" v-bind:disabled='blockJoin'>Join</button>
+      </div>
     </div>
     <div v-else>
       <ul class="inchat" id="messages">
@@ -84,31 +84,28 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="https://unpkg.com/vue@2.4.2/dist/vue.js"></script>
   <script>
-    var socket = io();
+    var joinFunc = function (a) {
+      var socket = io();
 
-    socket.on('join', function (msg) {
-      console.log('join event');
-      app.messages.forEach(function (m) {
-        app.messages.push(m);
+      socket.on('message', function (msg) {
+        console.log('message event');
+        console.log(msg);
+        a.messages.push(msg);
       });
-    });
 
-    socket.on('message', function (msg) {
-      console.log('message event');
-      console.log(msg);
-      app.messages.push(msg);
-    });
+      socket.on('typing', function (username) {
+        console.log('typing event: ' + username);
+        console.log(a.typingUsers);
+        if (a.typingUsers.indexOf(username) < 0) {
+          a.typingUsers.push(username);
+          setTimeout(function () {
+            a.typingUsers = a.typingUsers.filter(function (e) { return e != username });
+          }, 1000);
+        }
+      });
 
-    socket.on('typing', function (username) {
-      console.log('typing event: ' + username);
-      console.log(app.typingUsers);
-      if (app.typingUsers.indexOf(username) < 0) {
-        app.typingUsers.push(username);
-        setTimeout(function () {
-          app.typingUsers = app.typingUsers.filter(function (e) { return e != username });
-        }, 1000);
-      }
-    });
+      return socket;
+    };
 
     var app = new Vue({
       el: "#app",
@@ -116,20 +113,21 @@
         msg: "",
         messages: [],
         typingUsers: [],
-        room:'',
+        room: '',
         nickname: '',
-        isJoined: false
+        isJoined: false,
+        socket: null
       },
       computed: {
-        blockJoin: function(){
-          return this.room =='' || this.nickname=='';
+        blockJoin: function () {
+          return this.room == '' || this.nickname == '';
         }
       },
       methods: {
         sendMessage: function () {
           var m = this.msg.trim();
           if (m) {
-            socket.emit('message', this.msg);
+            this.socket.emit('message', this.msg);
             this.messages.push(this.msg);
             console.log('Emit: message - ' + this.msg);
           }
@@ -137,10 +135,12 @@
           return false;
         },
         emitTyping: function () {
-          socket.emit('typing', 'user');
+          this.socket.emit('typing', 'user');
         },
-        join: function(){
-          alert(this.room + ' : ' + this.nickname);
+        join: function () {
+          //alert(this.room + ' : ' + this.nickname);
+          this.socket = joinFunc(this);
+          this.isJoined = true;
         }
       }
     });
