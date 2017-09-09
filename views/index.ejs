@@ -3,11 +3,29 @@
 
 <head>
   <link rel='stylesheet' href='/stylesheets/style.css' />
+  <style>
+    body {
+      font: 13px Helvetica, Arial;
+    }
+
+    #app button {
+      width: 9%;
+      background: rgb(130, 0, 0);
+      color: white;
+      border: none;
+      padding: 10px;
+    }
+  </style>
 </head>
 
 <body>
   <div id="app">
-Empty    
+    <h2>Welcome</h2>
+    <input v-model.trim="room" placeholder="chat room name"></input>
+    <input v-model.trim="nickname" placeholder="your nickname"></input>
+    <div>
+      <button v-on:click="join" v-bind:disabled='blockJoin' >Join</button>
+    </div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="https://unpkg.com/vue@2.4.2/dist/vue.js"></script>
@@ -15,8 +33,18 @@ Empty
     var app = new Vue({
       el: "#app",
       data: {
+        room:'',
+        nickname: '',
+      },
+      computed: {
+        blockJoin: function(){
+          return this.room =='' || this.nickname=='';
+        }
       },
       methods: {
+        join: function(){
+          alert(this.room + ' : ' + this.nickname);
+        }
       }
     });
   </script>

@@ -37,7 +37,7 @@
       padding: 10px;
     }
 
-    ul.inchat{
+    ul.inchat {
       list-style-type: none;
       margin: 0;
       padding: 0;
@@ -55,22 +55,32 @@
 
 <body>
   <div id="app">
-    <ul class="inchat" id="messages">
-      <li v-for="msg in messages">
-        {{ msg }}
-      </li>
-    </ul>
+    <div v-if="!isJoined">
+        <h2>Welcome</h2>
+        <input v-model.trim="room" placeholder="chat room name"></input>
+        <input v-model.trim="nickname" placeholder="your nickname"></input>
+        <div>
+          <button v-on:click="join" v-bind:disabled='blockJoin' >Join</button>
+        </div>
+    </div>
+    <div v-else>
+      <ul class="inchat" id="messages">
+        <li v-for="msg in messages">
+          {{ msg }}
+        </li>
+      </ul>
 
-    <ul class="inchat">
-      <li v-for="user in typingUsers">
-        {{ user }} is typing...
-      </li>
-    </ul>
+      <ul class="inchat">
+        <li v-for="user in typingUsers">
+          {{ user }} is typing...
+        </li>
+      </ul>
 
-    <input v-model="msg" v-on:keyup.enter="sendMessage" v-on:keydown="emitTyping" />
-    <button v-on:click="sendMessage">Send</button>
-
+      <input v-model="msg" v-on:keyup.enter="sendMessage" v-on:keydown="emitTyping" />
+      <button v-on:click="sendMessage">Send</button>
+    </div>
   </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="https://unpkg.com/vue@2.4.2/dist/vue.js"></script>
   <script>
@@ -92,11 +102,11 @@
     socket.on('typing', function (username) {
       console.log('typing event: ' + username);
       console.log(app.typingUsers);
-      if (app.typingUsers.indexOf(username)<0) {
+      if (app.typingUsers.indexOf(username) < 0) {
         app.typingUsers.push(username);
-        setTimeout(function(){
-          app.typingUsers = app.typingUsers.filter(function(e){return e!=username});
-        },1000);
+        setTimeout(function () {
+          app.typingUsers = app.typingUsers.filter(function (e) { return e != username });
+        }, 1000);
       }
     });
 
@@ -106,6 +116,14 @@
         msg: "",
         messages: [],
         typingUsers: [],
+        room:'',
+        nickname: '',
+        isJoined: false
+      },
+      computed: {
+        blockJoin: function(){
+          return this.room =='' || this.nickname=='';
+        }
       },
       methods: {
         sendMessage: function () {
@@ -120,6 +138,9 @@
         },
         emitTyping: function () {
           socket.emit('typing', 'user');
+        },
+        join: function(){
+          alert(this.room + ' : ' + this.nickname);
         }
       }
     });
