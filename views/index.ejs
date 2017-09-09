@@ -15,7 +15,7 @@
     }
 
     #app {
-    
+
       padding: 3px;
       position: fixed;
       bottom: 20px;
@@ -73,12 +73,12 @@
     var msgs = [];
     socket.on('join', function (msg) {
       console.log('join event');
-      msgs.forEach(function(m){
+      msgs.forEach(function (m) {
         msgs.push(m);
       });
     });
 
-    socket.on('message',function(msg){
+    socket.on('message', function (msg) {
       console.log('message event');
       console.log(msg);
       msgs.push(msg);
@@ -88,12 +88,14 @@
       el: "#app",
       data: {
         msg: "",
-        messages:msgs
+        messages: msgs
       },
       methods: {
         sendMessage: function () {
-          socket.emit('message', this.msg);
-          console.log('Emit: message - ' + this.msg);
+          if (this.msg.trim()) {
+            socket.emit('message', this.msg);
+            console.log('Emit: message - ' + this.msg);
+          }
           this.msg = '';
           return false;
         }
