@@ -92,7 +92,8 @@
       },
       methods: {
         sendMessage: function () {
-          if (this.msg.trim()) {
+          var m = this.msg.trim();
+          if (m) {
             socket.emit('message', this.msg);
             console.log('Emit: message - ' + this.msg);
           }
