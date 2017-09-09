@@ -39,7 +39,7 @@ io.sockets.on('connection', function(client){
     });
     console.log('user said: ' + msg);
     client.broadcast.emit('message', msg);
-    client.emit('message', msg);
+    //client.emit('message', msg);
   });
 
   client.on('disconnect', function(){
