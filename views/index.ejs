@@ -104,7 +104,7 @@
         }
       });
 
-      socket.emit('join', {name: a.nickname, chat: a.room});
+      socket.emit('joinchat', {name: a.nickname, chat: a.room});
 
       return socket;
     };
