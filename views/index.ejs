@@ -4,8 +4,29 @@
 <head>
   <link rel='stylesheet' href='/stylesheets/style.css' />
   <style>
+    #app * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font: 13px Helvetica, Arial;
+    }
+
+    #app {
+
+      padding: 3px;
+      position: fixed;
+      bottom: 20px;
+      width: 80%;
+    }
+
+    #app input {
+      border: 1;
+      padding: 10px;
+      width: 90%;
+      margin-right: .5%;
     }
 
     #app button {
@@ -15,35 +36,112 @@
       border: none;
       padding: 10px;
     }
+
+    ul.inchat {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages li {
+      padding: 5px 10px;
+    }
+
+    .inchat li:nth-child(odd) {
+      background: #eee;
+    }
   </style>
 </head>
 
 <body>
   <div id="app">
-    <h2>Welcome</h2>
-    <input v-model.trim="room" placeholder="chat room name"></input>
-    <input v-model.trim="nickname" placeholder="your nickname"></input>
-    <div>
-      <button v-on:click="join" v-bind:disabled='blockJoin' >Join</button>
+    <div v-if="!isJoined">
+      <h2>Welcome</h2>
+      <input v-model.trim="room" placeholder="chat room name"></input>
+      <input v-model.trim="nickname" placeholder="your nickname"></input>
+      <div>
+        <button v-on:click="join" v-bind:disabled='blockJoin'>Join</button>
+      </div>
+    </div>
+    <div v-else>
+      <ul class="inchat" id="messages">
+        <li v-for="msg in messages">
+          {{ msg }}
+        </li>
+      </ul>
+
+      <ul class="inchat">
+        <li v-for="user in typingUsers">
+          {{ user }} is typing...
+        </li>
+      </ul>
+
+      <input v-model="msg" v-on:keyup.enter="sendMessage" v-on:keydown="emitTyping" />
+      <button v-on:click="sendMessage">Send</button>
     </div>
   </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="https://unpkg.com/vue@2.4.2/dist/vue.js"></script>
   <script>
+    var joinFunc = function (a) {
+      var socket = io();
+
+      socket.on('message', function (msg) {
+        console.log('message event');
+        console.log(msg);
+        a.messages.push(msg);
+      });
+
+      socket.on('typing', function (username) {
+        console.log('typing event: ' + username);
+        console.log(a.typingUsers);
+        if (a.typingUsers.indexOf(username) < 0) {
+          a.typingUsers.push(username);
+          setTimeout(function () {
+            a.typingUsers = a.typingUsers.filter(function (e) { return e != username });
+          }, 1000);
+        }
+      });
+
+      socket.emit('join', {name: a.nickname, chat: a.room});
+
+      return socket;
+    };
+
     var app = new Vue({
       el: "#app",
       data: {
-        room:'',
+        msg: "",
+        messages: [],
+        typingUsers: [],
+        room: '',
         nickname: '',
+        isJoined: false,
+        socket: null
       },
       computed: {
-        blockJoin: function(){
-          return this.room =='' || this.nickname=='';
+        blockJoin: function () {
+          return this.room == '' || this.nickname == '';
         }
       },
       methods: {
-        join: function(){
-          alert(this.room + ' : ' + this.nickname);
+        sendMessage: function () {
+          var m = this.msg.trim();
+          if (m) {
+            this.socket.emit('message', this.msg);
+            this.messages.push(this.nickname + ': ' +this.msg);
+            console.log('Emit: message - ' + this.msg);
+          }
+          this.msg = '';
+          return false;
+        },
+        emitTyping: function () {
+          this.socket.emit('typing', this.nickname);
+        },
+        join: function () {
+          this.socket = joinFunc(this);
+          this.isJoined = true;
         }
       }
     });

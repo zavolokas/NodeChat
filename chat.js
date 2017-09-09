@@ -6,12 +6,15 @@ exports.initChat = function (server) {
         redis.lrange('messages', 0, -1, function (err, msgs) {
             msgs = msgs.reverse();
             msgs.forEach(function (m) {
-                client.emit('message', m);
+                client.to(client.room).emit('message', m);
             });
         });
 
-        client.on('join', function(name){
-            client.nickname = name;
+        client.on('join', function(data){
+            console.log(data);
+            client.nickname = data.name;
+            client.room = data.chat;
+            client.join(data.chat);
         });
 
         console.log('user connected');
@@ -26,12 +29,12 @@ exports.initChat = function (server) {
             });
 
             console.log('user said: ' + msg);
-            client.broadcast.emit('message', msg);
+            client.to(client.room).broadcast.emit('message', msg);
             //client.emit('message', msg);
         });
 
         client.on('typing', function (username) {
-            client.broadcast.emit('typing', username);
+            client.to(client.room).broadcast.emit('typing', username);
         });
 
         client.on('disconnect', function () {
