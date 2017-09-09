@@ -37,7 +37,7 @@
       padding: 10px;
     }
 
-    #messages {
+    ul.inchat{
       list-style-type: none;
       margin: 0;
       padding: 0;
@@ -47,7 +47,7 @@
       padding: 5px 10px;
     }
 
-    #messages li:nth-child(odd) {
+    .inchat li:nth-child(odd) {
       background: #eee;
     }
   </style>
@@ -55,14 +55,19 @@
 
 <body>
   <div id="app">
-    <ul id="messages">
+    <ul class="inchat" id="messages">
       <li v-for="msg in messages">
         {{ msg }}
       </li>
     </ul>
 
+    <ul class="inchat">
+      <li v-for="user in typingUsers">
+        {{ user }} is typing...
+      </li>
+    </ul>
 
-    <input v-model="msg" v-on:keyup.enter="sendMessage" />
+    <input v-model="msg" v-on:keyup.enter="sendMessage" v-on:keydown="emitTyping" />
     <button v-on:click="sendMessage">Send</button>
 
   </div>
@@ -70,25 +75,37 @@
   <script src="https://unpkg.com/vue@2.4.2/dist/vue.js"></script>
   <script>
     var socket = io();
-    var msgs = [];
+
     socket.on('join', function (msg) {
       console.log('join event');
-      msgs.forEach(function (m) {
-        msgs.push(m);
+      app.messages.forEach(function (m) {
+        app.messages.push(m);
       });
     });
 
     socket.on('message', function (msg) {
       console.log('message event');
       console.log(msg);
-      msgs.push(msg);
+      app.messages.push(msg);
+    });
+
+    socket.on('typing', function (username) {
+      console.log('typing event: ' + username);
+      console.log(app.typingUsers);
+      if (app.typingUsers.indexOf(username)<0) {
+        app.typingUsers.push(username);
+        setTimeout(function(){
+          app.typingUsers = app.typingUsers.filter(function(e){return e!=username});
+        },1000);
+      }
     });
 
     var app = new Vue({
       el: "#app",
       data: {
         msg: "",
-        messages: msgs
+        messages: [],
+        typingUsers: [],
       },
       methods: {
         sendMessage: function () {
@@ -100,6 +117,9 @@
           }
           this.msg = '';
           return false;
+        },
+        emitTyping: function () {
+          socket.emit('typing', 'user');
         }
       }
     });
