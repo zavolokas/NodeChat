@@ -3,124 +3,20 @@
 
 <head>
   <link rel='stylesheet' href='/stylesheets/style.css' />
-  <style>
-    #app * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font: 13px Helvetica, Arial;
-    }
-
-    #app {
-
-      padding: 3px;
-      position: fixed;
-      bottom: 20px;
-      width: 80%;
-    }
-
-    #app input {
-      border: 1;
-      padding: 10px;
-      width: 90%;
-      margin-right: .5%;
-    }
-
-    #app button {
-      width: 9%;
-      background: rgb(130, 0, 0);
-      color: white;
-      border: none;
-      padding: 10px;
-    }
-
-    ul.inchat{
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    #messages li {
-      padding: 5px 10px;
-    }
-
-    .inchat li:nth-child(odd) {
-      background: #eee;
-    }
-  </style>
 </head>
 
 <body>
   <div id="app">
-    <ul class="inchat" id="messages">
-      <li v-for="msg in messages">
-        {{ msg }}
-      </li>
-    </ul>
-
-    <ul class="inchat">
-      <li v-for="user in typingUsers">
-        {{ user }} is typing...
-      </li>
-    </ul>
-
-    <input v-model="msg" v-on:keyup.enter="sendMessage" v-on:keydown="emitTyping" />
-    <button v-on:click="sendMessage">Send</button>
-
+Empty    
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script src="https://unpkg.com/vue@2.4.2/dist/vue.js"></script>
   <script>
-    var socket = io();
-
-    socket.on('join', function (msg) {
-      console.log('join event');
-      app.messages.forEach(function (m) {
-        app.messages.push(m);
-      });
-    });
-
-    socket.on('message', function (msg) {
-      console.log('message event');
-      console.log(msg);
-      app.messages.push(msg);
-    });
-
-    socket.on('typing', function (username) {
-      console.log('typing event: ' + username);
-      console.log(app.typingUsers);
-      if (app.typingUsers.indexOf(username)<0) {
-        app.typingUsers.push(username);
-        setTimeout(function(){
-          app.typingUsers = app.typingUsers.filter(function(e){return e!=username});
-        },1000);
-      }
-    });
-
     var app = new Vue({
       el: "#app",
       data: {
-        msg: "",
-        messages: [],
-        typingUsers: [],
       },
       methods: {
-        sendMessage: function () {
-          var m = this.msg.trim();
-          if (m) {
-            socket.emit('message', this.msg);
-            this.messages.push(this.msg);
-            console.log('Emit: message - ' + this.msg);
-          }
-          this.msg = '';
-          return false;
-        },
-        emitTyping: function () {
-          socket.emit('typing', 'user');
-        }
       }
     });
   </script>
