@@ -10,12 +10,21 @@ exports.initChat = function (server) {
             });
         });
 
+        client.on('join', function(name){
+            client.nickname = name;
+        });
+
         console.log('user connected');
 
         client.on('message', function (msg) {
+
+            var nickname = client.nickname;
+            msg = nickname + ': ' + msg;
+
             redis.lpush('messages', msg, function () {
                 redis.ltrim('messages', 0, 3);
             });
+
             console.log('user said: ' + msg);
             client.broadcast.emit('message', msg);
             //client.emit('message', msg);

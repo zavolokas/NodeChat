@@ -104,6 +104,8 @@
         }
       });
 
+      socket.emit('join', a.nickname);
+
       return socket;
     };
 
@@ -128,17 +130,16 @@
           var m = this.msg.trim();
           if (m) {
             this.socket.emit('message', this.msg);
-            this.messages.push(this.msg);
+            this.messages.push(this.nickname + ': ' +this.msg);
             console.log('Emit: message - ' + this.msg);
           }
           this.msg = '';
           return false;
         },
         emitTyping: function () {
-          this.socket.emit('typing', 'user');
+          this.socket.emit('typing', this.nickname);
         },
         join: function () {
-          //alert(this.room + ' : ' + this.nickname);
           this.socket = joinFunc(this);
           this.isJoined = true;
         }
