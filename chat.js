@@ -1,6 +1,6 @@
 exports.initChat = function (server) {
     var io = require('socket.io')(server);
-    var redis = require('redis').createClient();
+    var redis = require('redis').createClient(process.env.REDIS_URL);
 
     io.sockets.on('connection', function (client) {
 
