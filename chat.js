@@ -31,12 +31,12 @@ exports.initChat = function (server) {
                 throw new Error('Yeblys');
             }
 
-            var employeeUrl = 'http://' + process.env.EMPLOYEE_SVC_SERVICE_HOST;
+            var employeeUrl = '';
 
             if (msg == 'account') {
                 var options = {
-                    host: employeeUrl,
-                    port: process.env.EMPLOYEE_SVC_SERVICE_PORT,
+                    host: 'employee-svc',
+                    port: 80,
                     path: '/employee',
                     method: 'GET'
                 };
