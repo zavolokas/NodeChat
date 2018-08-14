@@ -1,8 +1,14 @@
 exports.initChat = function (server) {
+    const dotenv = require('dotenv');
     var http = require('http');
     var io = require('socket.io')(server);
-    var redisUrl = 'redis://' + process.env.REDIS_SERVICE_HOST + ':' +process.env.REDIS_SERVICE_PORT;
+    
+    dotenv.config();
+    var redisUrl = 'redis://' + process.env.REDIS_SERVICE_HOST + ':' + process.env.REDIS_SERVICE_PORT;
     var redis = require('redis').createClient(redisUrl);
+
+    var ChatBot = require('./chatBot');
+    let chatBot = new ChatBot(io);
 
     io.sockets.on('connection', function (client) {
 
@@ -27,28 +33,12 @@ exports.initChat = function (server) {
 
             console.log(redisUrl);
 
-            if (msg == 'error'){
+            if (msg == 'error') {
                 throw new Error('Yeblys');
             }
 
-            var employeeUrl = '';
-
-            if (msg == 'account') {
-                var options = {
-                    host: 'employee-svc',
-                    port: 80,
-                    path: '/employee',
-                    method: 'GET'
-                };
-
-                http.request(options, function (res) {
-                    console.log('STATUS: ' + res.statusCode);
-                    console.log('HEADERS: ' + JSON.stringify(res.headers));
-                    res.setEncoding('utf8');
-                    res.on('data', function (chunk) {
-                        console.log('BODY: ' + chunk);
-                    });
-                }).end();
+            if (msg == 'weather') {
+                chatBot.processBotCommand('weather', client, redis);
             }
 
             var nickname = client.nickname;
@@ -59,7 +49,7 @@ exports.initChat = function (server) {
             });
             client.broadcast.to(client.chatroom).emit('message', msg);
 
-           
+
         });
 
         client.on('typing', function (username) {

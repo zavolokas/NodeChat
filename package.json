@@ -17,6 +17,7 @@
     "socket.io": "^2.0.3"
   },
   "devDependencies": {
+    "dotenv": "^6.0.0",
     "gulp": "^3.9.1",
     "gulp-nodemon": "^2.2.1"
   }
