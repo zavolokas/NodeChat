@@ -7,6 +7,7 @@ WORKDIR /app
 # Install app dependencies
 COPY package.json /app
 RUN npm install
+ENV WEATHER_SERVICE_HOST=weather-service
 
 # Bundle app source
 COPY . /app
